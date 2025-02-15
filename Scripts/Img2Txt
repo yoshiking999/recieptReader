@@ -1,0 +1,54 @@
+from PIL import Image
+import pytesseract
+import os
+import glob
+
+# set Tesseract path
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+# image directory
+img_dir = "./img"
+
+
+# process all images in image directory
+def read_img():
+    image_files = glob.glob(os.path.join(img_dir, "*.[jpJP][pnPN]*"))  # .jpg, .jpeg, .png を取得
+    extracted_texts = []
+
+    for file in image_files:
+        try:
+            image = Image.open(file)
+
+            # extract texts
+            text = pytesseract.image_to_string(image)
+            extracted_texts.append(text)  
+
+            print(f"Processed: {file}")  
+        except Exception as e:
+            print(f"Error processing {file}: {e}")
+
+    return extracted_texts  # return all texts
+
+# if it is number or not
+def is_number(x):
+    try:
+        float(x)
+        return True
+    except ValueError:
+        return False
+
+
+all_texts = read_img()
+
+def find_total(txt):
+    lines = txt.split("\n")
+    for line in lines:
+        if "TOTAL"  in line and "SUBTOTAL" not in line:  
+            words = line.split(" ")
+            for word in words:
+                if is_number(word):
+                    return f"Total Price: ${word}"
+
+# find total price
+for text in all_texts:
+    print(find_total(text))
